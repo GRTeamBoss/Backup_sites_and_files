@@ -1,6 +1,7 @@
 from urllib.request import urlopen
 from bs4 import BeautifulSoup
 import time
+import re
 
 intro = "Backup\n1.filename\n2.url\n1.1.site\n1.2.tags\n2.1.site\n2.2.tags\nAttention: only '1.x' or '2.x'."
 print(intro)
@@ -20,6 +21,7 @@ class Backup:
 		self.file_read = ''
 		self.tags_search_start = ''
 		self.tags_search_end = ''
+		self.tags_search_start_full = ''
 		self.data = ''
 
 		if self.var == '1.1': #-filename -site
@@ -83,112 +85,147 @@ class Backup:
 		if self.tags_method == "1":
 			self.tags_search = str(input("Please input without '<' and '>' symbols\n: "))
 			self.tags_search_start = "<" + self.tags_search
-			self.tags_search_end = "</" + self.tags_search + ">" 
+			self.tags_search_end = "</" + self.tags_search + ">"
+			self.tags_search_start_full = "<" + self.tags_search + ">"
 			text_list = self.file_read.split();
 			n = 0
+			m = 0
 			value_start = ''
 			value_end = ''
-
 			for i in range(0, len(text_list)):
-
 				if self.tags_search_start == text_list[i]:
 					n += 1
 					value_start += str(i) + ' '
-
-					if n == 0:
-						print("start tag not found!")
-					else:
-						pass
-
 				else:
 					pass
-
+			if n == 0:
+				for i in range(0, len(text_list)):
+					if self.tags_search_start_full == text_list[i]:
+						m += 1
+						value_start += str(i) + ' '
+					else:
+						pass				
+			else:
+				pass
+			print(value_start)
+			m = 0
 			for i in range(0, len(text_list)):
-
 				if self.tags_search_end == text_list[i]:
-					n += 1
+					m += 1
 					value_end += str(i) + ' '
-
-					if n == 0:
-						print("end tag not found!")
-					else:
-						pass
-
 				else:
 					pass
+			if m == 0:
+				print("end tag not found!")
+			else:
+				pass
 
 			value_split_start = value_start.split()
 			value_split_end = value_end.split()
 			value_content = []
+			tag_end = re.compile('[a-zA-Z(-=\!\s\~\@\#\$\)\(\%\^\&\*\_\+\'\")]+[>]')
 
-			for i in range(0, len(value_split_start)):
-
-				value_content.append([])
-				n = int(value_split_start[i]) + 1
-
-				while n < int(value_split_end[i]):
-					value_content[i].append(text_list[n])
-					n += 1
+			if m == 0:
+				for i in range(0, len(value_split_start)):
+					value_content.append([])
+					n = int(value_split_start[i]) + 1
+					for b in range(n, n + 10):
+						if text_list[b] != ''.join(tag_end.findall(text_list[b])):
+							value_content[i].append(text_list[b])
+						elif text_list[b] == ''.join(tag_end.findall(text_list[b])):
+							value_content[i].append(text_list[b])
+							print(tag_end.findall(text_list[b]))
+							break
+						else:
+							pass
+			else:
+				for i in range(0, len(value_split_start)):
+					value_content.append([])
+					n = int(value_split_start[i]) + 1
+					while n < int(value_split_end[i]):
+						value_content[i].append(text_list[n])
+						n += 1
 
 			self.tags = []
 
-			for i in range(0, len(value_split_start)):
-				self.tags.append(str(''.join(text_list[int(value_split_start[i])])) + ' ' + str(' '.join(value_content[i])) + ' ' + str(''.join(text_list[int(value_split_end[i])])))
+			if m == 0:
+				for i in range(0, len(value_split_start)):
+					self.tags.append(str(''.join(text_list[int(value_split_start[i])])) + ' ' + str(' '.join(value_content[i])))
+			else:	
+				for i in range(0, len(value_split_start)):
+					self.tags.append(str(''.join(text_list[int(value_split_start[i])])) + ' ' + str(' '.join(value_content[i])) + ' ' + str(''.join(text_list[int(value_split_end[i])])))
 
 			backup_post = open("backup_file_site_" + self.tags_search + "s.txt", "a")
 			backup_post.write(str(time.ctime()) + ": \n" + str(''.join(self.tags)) + "\n")
 			backup_post.close()
 		elif self.tags_method == "2":
 			self.tags_search = str(input("Please input without '<' and '>' symbols\n: "))
-			self.count = str(input("Please input which tag with class =" + self.tags_attribut_name + " parse, example: '0' - it's first tag."))
+			self.count = str(input("Please input which tag parse, example: '0' - it's first tag.\n: "))
 			self.tags_search_start = "<" + self.tags_search
+			self.tags_search_start_full = "<" + self.tags_search + ">"
 			self.tags_search_end = "</" + self.tags_search + ">" 
 			text_list = self.file_read.split();
 			n = 0
+			m = 0
 			value_start = ''
 			value_end = ''
-
 			for i in range(0, len(text_list)):
-
 				if self.tags_search_start == text_list[i]:
 					n += 1
-					value_start += str(i)+ " "
-
-					if n == 0:
-						print("start tag not found!")
-					else:
-						pass
-
+					value_start += str(i) + ' '
 				else:
 					pass
-
+			if n == 0:
+				for i in range(0, len(text_list)):
+					if self.tags_search_start_full == text_list[i]:
+						m += 1
+						value_start += str(i) + ' '
+					else:
+						pass				
+			else:
+				pass
+			print(value_start)
+			n = 0
 			for i in range(0, len(text_list)):
-
 				if self.tags_search_end == text_list[i]:
 					n += 1
 					value_end += str(i) + ' '
-
-					if n == 0:
-						print("end tag not found!")
-					else:
-						pass
-
 				else:
 					pass
-
+			if n == 0:
+				print("end tags not found!")
+			else:
+				pass
 			value_split_start = value_start.split()
 			value_split_end = value_end.split()
 			value_content = []
+			tag_end = re.compile("""[a-zA-Z(-=\'\"\!\s\~\@\#\(\)\$\%\^\&\*\_\+)]+[>]""")
+
 			for i in range(0, len(value_split_start)):
+				value_content.append([])
+				n = int(value_split_start[i]) + 1
 				if int(self.count) == i:
-					value_content.append([])
-					n = int(value_split_start[i]) + 1
-					while n < int(value_split_end[i]):
-						value_content[i].append(text_list[n])
-						n += 1
+					if len(value_end) == 0:
+						for b in range(n, n + 10):
+							if text_list[b] != ''.join(tag_end.findall(text_list[b])):
+								value_content[i].append(text_list[b])
+							elif text_list[b] == ''.join(tag_end.findall(text_list[b])):
+								value_content[i].append(text_list[b])
+								print(tag_end.findall(text_list[b]))
+								break
+							else:
+								pass
+					else:
+						while n < int(value_split_end[i]):
+							value_content[i].append(text_list[n])
+							n += 1
 				else:
 					pass
-			self.tags_get = str(''.join(text_list[int(value_split_start[int(self.count)])])) + ' ' + str(' '.join(value_content[int(self.count)])) + ' ' + str(''.join(text_list[int(value_split_end[int(self.count)])]))
+			if len(value_end) == 0:
+				self.tags_get = str(''.join(text_list[int(value_split_start[int(self.count)])])) + ' ' + str(' '.join(value_content[int(self.count)]))
+			else:
+				self.tags_get = str(''.join(text_list[int(value_split_start[int(self.count)])])) + ' ' + str(' '.join(value_content[int(self.count)])) + ' ' + str(''.join(text_list[int(value_split_end[int(self.count)])]))
+
 			backup_post = open("backup_file_site_" + self.tags_search + ".txt", "a")
 			backup_post.write(str(time.ctime()) + ": \n" + str(self.tags_get) + "\n")
 			backup_post.close()
